@@ -1,0 +1,43 @@
+name: Adapter work
+description: Claim an adapter, or report an adapter bug.
+labels: [adapter]
+body:
+  - type: dropdown
+    id: engine
+    attributes:
+      label: Engine
+      options:
+        - polars
+        - pandas
+        - duckdb
+        - sql (sqlglot)
+        - dbt
+        - pyspark
+        - ibis
+        - iceberg
+        - other
+    validations:
+      required: true
+  - type: dropdown
+    id: kind
+    attributes:
+      label: Kind
+      options:
+        - Claiming this adapter
+        - Wrong schema reported
+        - Schema reported as exact when it was not
+        - Engine version compatibility
+        - Missing capability
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: Pipeline and expected schema
+      description: The smallest pipeline that shows it, plus what the engine actually produces.
+      render: python
+  - type: input
+    id: versions
+    attributes:
+      label: Versions
+      placeholder: rowless 0.1.0, polars 1.12.0, Python 3.12.7

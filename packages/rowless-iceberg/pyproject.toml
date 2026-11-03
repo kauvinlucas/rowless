@@ -1,0 +1,22 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "rowless-iceberg"
+version = "0.0.0.dev0"
+description = "Iceberg schema source for rowless, via PyIceberg catalog metadata."
+readme = "README.md"
+requires-python = ">=3.12"
+license = "Apache-2.0"
+authors = [{ name = "Kauvin Lucas", email = "kauvinlucas@gmail.com" }]
+dependencies = [
+    "rowless",
+    "pyiceberg>=0.7",
+]
+
+[project.entry-points."rowless.sources"]
+iceberg = "rowless_iceberg.source:IcebergSource"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/rowless_iceberg"]

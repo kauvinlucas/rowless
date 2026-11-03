@@ -1,0 +1,22 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "rowless-sql"
+version = "0.0.0.dev0"
+description = "SQL adapter for rowless: sqlglot qualification and type annotation."
+readme = "README.md"
+requires-python = ">=3.12"
+license = "Apache-2.0"
+authors = [{ name = "Kauvin Lucas", email = "kauvinlucas@gmail.com" }]
+dependencies = [
+    "rowless",
+    "sqlglot[rs]>=25.0",
+]
+
+[project.entry-points."rowless.engines"]
+sql = "rowless_sql.adapter:SqlAdapter"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/rowless_sql"]

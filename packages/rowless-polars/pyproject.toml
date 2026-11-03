@@ -1,0 +1,22 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "rowless-polars"
+version = "0.0.0.dev0"
+description = "Polars adapter for rowless: resolve LazyFrame schemas without executing."
+readme = "README.md"
+requires-python = ">=3.12"
+license = "Apache-2.0"
+authors = [{ name = "Kauvin Lucas", email = "kauvinlucas@gmail.com" }]
+dependencies = [
+    "rowless",
+    "polars>=1.0",
+]
+
+[project.entry-points."rowless.engines"]
+polars = "rowless_polars.adapter:PolarsAdapter"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/rowless_polars"]

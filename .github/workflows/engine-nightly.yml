@@ -1,0 +1,25 @@
+name: Engine nightly
+
+# Adapters break when engines release, not when rowless changes. This job runs
+# every adapter against the newest engine versions nightly, so a breaking change
+# in Polars or pandas is an issue filed before a user hits it.
+on:
+  schedule:
+    - cron: "0 5 * * *"
+  workflow_dispatch:
+
+jobs:
+  latest-engines:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        adapter: [polars, pandas, duckdb, sql, ibis, iceberg]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v3
+      - name: Test against the newest engine release
+        run: uv run --package rowless-${{ matrix.adapter }} --upgrade pytest packages/rowless-${{ matrix.adapter }}
+      - name: File an issue on failure
+        if: failure()
+        run: echo "TODO(ci): open or update an issue tagged adapter:${{ matrix.adapter }}"

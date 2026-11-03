@@ -1,0 +1,22 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "rowless-pandas"
+version = "0.0.0.dev0"
+description = "pandas adapter for rowless: empty typed frames, with the dtype drift fixed."
+readme = "README.md"
+requires-python = ">=3.12"
+license = "Apache-2.0"
+authors = [{ name = "Kauvin Lucas", email = "kauvinlucas@gmail.com" }]
+dependencies = [
+    "rowless",
+    "pandas>=2.2",
+]
+
+[project.entry-points."rowless.engines"]
+pandas = "rowless_pandas.adapter:PandasAdapter"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/rowless_pandas"]

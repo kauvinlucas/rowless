@@ -1,0 +1,98 @@
+# Virtual workspace root. Nothing is published from here; every distribution
+# lives under packages/.
+#
+#   uv sync --all-packages --all-extras   # dev environment
+#   uv run rowless check                  # run the CLI from source
+
+[tool.uv.workspace]
+members = ["packages/*"]
+
+[tool.uv.sources]
+rowless = { workspace = true }
+rowless-polars = { workspace = true }
+rowless-pandas = { workspace = true }
+rowless-duckdb = { workspace = true }
+rowless-sql = { workspace = true }
+rowless-dbt = { workspace = true }
+rowless-pyspark = { workspace = true }
+rowless-ibis = { workspace = true }
+rowless-iceberg = { workspace = true }
+rowless-pytest = { workspace = true }
+rowless-openlineage = { workspace = true }
+rowless-lsp = { workspace = true }
+
+[dependency-groups]
+dev = [
+    "pytest>=8.0",
+    "pytest-cov>=5.0",
+    "mypy>=1.11",
+    "ruff>=0.6",
+    "nox>=2024.4.15",
+    "hypothesis>=6.100",
+]
+docs = [
+    "mkdocs>=1.6",
+    "mkdocs-material>=9.5",
+    "mkdocstrings[python]>=0.25",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+extend-exclude = ["docs/rowless-proposal.html"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM", "RUF", "ANN", "D"]
+ignore = ["D105", "D107", "ANN401"]
+
+[tool.ruff.lint.per-file-ignores]
+# Every package has its own tests/ directory, so the pattern has to reach into
+# the workspace rather than only matching the one at the root.
+"**/tests/**" = ["D", "ANN"]
+"**/examples/**" = ["D", "ANN", "INP"]
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+warn_unreachable = true
+# Engine libraries ship partial or absent stubs; adapters isolate the fallout.
+[[tool.mypy.overrides]]
+module = [
+    "duckdb.*",
+    "pyspark.*",
+    "ibis.*",
+    "pyiceberg.*",
+    "dbt.*",
+    # Optional source dependencies. Core imports these lazily, behind an
+    # `available()` check, so a missing stub must not fail the type check.
+    "pyarrow.*",
+    "sqlalchemy.*",
+    "pandera.*",
+    "dataframely.*",
+    "patito.*",
+]
+ignore_missing_imports = true
+
+# Test modules are exempt from the annotation rules, the same way ruff exempts
+# them: a test's signature is pytest's business, and `-> None` on 200 tests is
+# noise rather than safety.
+[[tool.mypy.overrides]]
+module = ["tests.*", "conftest", "rowless_fake"]
+disallow_untyped_defs = false
+disallow_incomplete_defs = false
+
+[tool.pytest.ini_options]
+testpaths = ["packages", "tests"]
+markers = [
+    "conformance: adapter conformance suite, parametrised over every installed engine",
+    "requires_engine: needs a real engine library installed",
+    "slow: excluded from the default CI matrix",
+]
+addopts = "-ra --strict-markers --strict-config"
+
+[tool.coverage.run]
+source_pkgs = ["rowless"]
+branch = true

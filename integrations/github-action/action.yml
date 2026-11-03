@@ -1,0 +1,67 @@
+name: rowless
+description: Catch broken data pipelines in a pull request, before any data moves.
+author: Kauvin Lucas
+branding:
+  icon: columns
+  color: purple
+
+inputs:
+  command:
+    description: Either `check` (working tree) or `diff` (versus a base ref).
+    required: false
+    default: check
+  base-ref:
+    description: Base ref for `diff`. Defaults to the pull request base.
+    required: false
+    default: ""
+  paths:
+    description: Files or directories to check. Defaults to the whole repo.
+    required: false
+    default: ""
+  engines:
+    description: Space-separated adapters to install, e.g. "polars duckdb dbt".
+    required: false
+    default: polars duckdb sql
+  fail-on:
+    description: breaking, risky, any, or never. `never` reports without gating.
+    required: false
+    default: breaking
+  min-coverage:
+    description: Fail when typed schema coverage falls below this ratio (0 to 1).
+    required: false
+    default: "0"
+  comment:
+    description: Post the blast radius as a pull request comment.
+    required: false
+    default: "true"
+  annotate:
+    description: Emit inline annotations on the changed lines.
+    required: false
+    default: "true"
+  sarif:
+    description: Also write a SARIF file at this path for code scanning.
+    required: false
+    default: ""
+
+outputs:
+  severity:
+    description: Worst severity found: breaking, risky, compatible or none.
+  findings:
+    description: Number of findings.
+  coverage:
+    description: Typed schema coverage ratio.
+  report-json:
+    description: Path to the full JSON report.
+
+runs:
+  using: composite
+  steps:
+    # A composite action rather than a Docker one on purpose: the dry run needs
+    # the engine versions the repository itself pins. Resolving schemas against
+    # a different Polars than the pipeline runs on would report differences
+    # that do not exist.
+    - name: TODO(integrations) install rowless and run it
+      shell: bash
+      run: |
+        echo "TODO(integrations): see integrations/github-action/README.md"
+        exit 1

@@ -1,0 +1,82 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v3
+        with:
+          enable-cache: true
+      - run: uv run nox -s lint types
+
+  core:
+    # Core must pass with no engine installed. If this job needs an engine,
+    # something has leaked out of an adapter and into core.
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python: ["3.12", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v3
+        with:
+          enable-cache: true
+      - run: uv run --package rowless --python ${{ matrix.python }} pytest packages/rowless-core
+
+  adapters:
+    # One isolated environment per adapter, so a broken engine release takes
+    # down one cell rather than the whole matrix. fail-fast off for the same
+    # reason: an adapter owner needs to see their own cell.
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        adapter: [polars, pandas, duckdb, sql, dbt, ibis, iceberg, pytest, openlineage]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v3
+        with:
+          enable-cache: true
+      - run: uv run --package rowless-${{ matrix.adapter }} pytest packages/rowless-${{ matrix.adapter }}
+
+  pyspark:
+    # Separate from the matrix: a JVM, a large download, and a Connect server.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+      - uses: astral-sh/setup-uv@v3
+      - run: uv run --package rowless-pyspark pytest packages/rowless-pyspark
+
+  conformance:
+    # Every adapter against the shared suite, in one environment. This is the
+    # job that catches an adapter drifting from the contract.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v3
+        with:
+          enable-cache: true
+      - run: uv run nox -s conformance
+
+  examples:
+    # Dogfooding: rowless must find the planted finding in every example, and
+    # must not invent any others.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v3
+      - run: uv run pytest tests/test_examples.py

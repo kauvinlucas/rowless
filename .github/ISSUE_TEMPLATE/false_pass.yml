@@ -1,0 +1,29 @@
+name: False pass
+description: rowless reported a pipeline as fine when it was broken.
+labels: [bug, false-pass, priority]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        This is the most serious bug class in the project. A tool that reports
+        a pass it has not earned is worse than no tool, because people stop
+        checking. These get triaged first.
+  - type: textarea
+    id: pipeline
+    attributes:
+      label: The pipeline
+      render: python
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What broke at runtime that rowless did not catch
+    validations:
+      required: true
+  - type: textarea
+    id: output
+    attributes:
+      label: Output of `rowless explain` for this pipeline
+      description: Shows which lineage edges and confidence decisions led to the pass.
+      render: shell

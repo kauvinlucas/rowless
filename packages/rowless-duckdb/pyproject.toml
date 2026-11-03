@@ -1,0 +1,22 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "rowless-duckdb"
+version = "0.0.0.dev0"
+description = "DuckDB adapter for rowless: empty tables plus DESCRIBE."
+readme = "README.md"
+requires-python = ">=3.12"
+license = "Apache-2.0"
+authors = [{ name = "Kauvin Lucas", email = "kauvinlucas@gmail.com" }]
+dependencies = [
+    "rowless",
+    "duckdb>=1.0",
+]
+
+[project.entry-points."rowless.engines"]
+duckdb = "rowless_duckdb.adapter:DuckDBAdapter"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/rowless_duckdb"]

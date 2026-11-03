@@ -1,0 +1,51 @@
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+
+# Trusted publishing: no API tokens in repository secrets. Each package has its
+# own PyPI project and its own publisher claim.
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        package:
+          - rowless-core
+          - rowless-polars
+          - rowless-pandas
+          - rowless-duckdb
+          - rowless-sql
+          - rowless-dbt
+          - rowless-pyspark
+          - rowless-ibis
+          - rowless-iceberg
+          - rowless-pytest
+          - rowless-openlineage
+          - rowless-lsp
+          - rowless-all
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v3
+      - run: uv build --package ${{ matrix.package }} --out-dir dist
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dist-${{ matrix.package }}
+          path: dist
+
+  publish:
+    needs: build
+    runs-on: ubuntu-latest
+    environment: pypi
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: dist-*
+          merge-multiple: true
+          path: dist
+      - uses: pypa/gh-action-pypi-publish@release/v1

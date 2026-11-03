@@ -1,0 +1,9 @@
+{
+  "name": "stg_orders",
+  "fields": [
+    {"name": "order_id", "dtype": "int64", "nullable": false},
+    {"name": "status", "dtype": "string"},
+    {"name": "amount_cents", "dtype": "int64"},
+    {"name": "created_at", "dtype": "datetime[us, UTC]"}
+  ]
+}

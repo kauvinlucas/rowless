@@ -1,0 +1,22 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "rowless-ibis"
+version = "0.0.0.dev0"
+description = "Ibis adapter for rowless: unbound tables and expression schemas."
+readme = "README.md"
+requires-python = ">=3.12"
+license = "Apache-2.0"
+authors = [{ name = "Kauvin Lucas", email = "kauvinlucas@gmail.com" }]
+dependencies = [
+    "rowless",
+    "ibis-framework>=9.0",
+]
+
+[project.entry-points."rowless.engines"]
+ibis = "rowless_ibis.adapter:IbisAdapter"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/rowless_ibis"]

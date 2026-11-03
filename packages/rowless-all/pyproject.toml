@@ -1,0 +1,37 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "rowless-all"
+version = "0.0.0.dev0"
+description = "Everything: rowless core plus every adapter and integration."
+readme = "README.md"
+requires-python = ">=3.12"
+license = "Apache-2.0"
+authors = [{ name = "Kauvin Lucas", email = "kauvinlucas@gmail.com" }]
+
+# A meta-distribution, so core never has to depend on its own plugins. Install
+# this to get the lot; install `rowless` plus the one or two adapters you use
+# for anything else, which is what most people should do.
+dependencies = [
+    "rowless",
+    "rowless-polars",
+    "rowless-pandas",
+    "rowless-duckdb",
+    "rowless-sql",
+    "rowless-dbt",
+    "rowless-ibis",
+    "rowless-iceberg",
+    "rowless-pytest",
+    "rowless-openlineage",
+]
+
+[project.optional-dependencies]
+# Kept out of the default set: pyspark is a large install and the LSP is only
+# useful with an editor attached.
+spark = ["rowless-pyspark"]
+lsp = ["rowless-lsp"]
+
+[tool.hatch.build.targets.wheel]
+bypass-selection = true

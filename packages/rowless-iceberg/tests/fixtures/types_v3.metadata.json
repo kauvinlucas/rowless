@@ -1,0 +1,99 @@
+{
+  "format-version": 3,
+  "table-uuid": "b2a0c1d4-55e6-4f71-8a9c-3e1f7d20bb42",
+  "location": "file:///warehouse/corpus/every_type",
+  "last-sequence-number": 1,
+  "last-updated-ms": 1731196800000,
+  "last-column-id": 40,
+  "current-schema-id": 0,
+  "schemas": [
+    {
+      "type": "struct",
+      "schema-id": 0,
+      "fields": [
+        { "id": 1, "name": "flag", "required": true, "type": "boolean" },
+        { "id": 2, "name": "small", "required": true, "type": "int" },
+        { "id": 3, "name": "big", "required": true, "type": "long" },
+        { "id": 4, "name": "single", "required": false, "type": "float" },
+        { "id": 5, "name": "wide", "required": false, "type": "double" },
+        { "id": 6, "name": "money", "required": false, "type": "decimal(18, 2)" },
+        { "id": 7, "name": "day", "required": false, "type": "date" },
+        { "id": 8, "name": "clock", "required": false, "type": "time" },
+        { "id": 9, "name": "naive", "required": false, "type": "timestamp" },
+        { "id": 10, "name": "aware", "required": false, "type": "timestamptz" },
+        { "id": 11, "name": "naive_nanos", "required": false, "type": "timestamp_ns" },
+        { "id": 12, "name": "aware_nanos", "required": false, "type": "timestamptz_ns" },
+        { "id": 13, "name": "label", "required": false, "type": "string" },
+        { "id": 14, "name": "blob", "required": false, "type": "binary" },
+        { "id": 15, "name": "digest", "required": false, "type": "fixed[16]" },
+        { "id": 16, "name": "key", "required": false, "type": "uuid" },
+        { "id": 17, "name": "nothing", "required": false, "type": "unknown" },
+        { "id": 18, "name": "shape", "required": false, "type": "geometry" },
+        { "id": 19, "name": "region", "required": false, "type": "geography" },
+        {
+          "id": 20,
+          "name": "tags",
+          "required": false,
+          "type": {
+            "type": "list",
+            "element-id": 21,
+            "element": "string",
+            "element-required": true
+          }
+        },
+        {
+          "id": 22,
+          "name": "counters",
+          "required": false,
+          "type": {
+            "type": "map",
+            "key-id": 23,
+            "key": "string",
+            "value-id": 24,
+            "value": "long",
+            "value-required": false
+          }
+        },
+        {
+          "id": 25,
+          "name": "address",
+          "required": false,
+          "type": {
+            "type": "struct",
+            "fields": [
+              { "id": 26, "name": "street", "required": true, "type": "string" },
+              { "id": 27, "name": "zip", "required": false, "type": "int" }
+            ]
+          }
+        },
+        {
+          "id": 28,
+          "name": "lines",
+          "required": false,
+          "type": {
+            "type": "list",
+            "element-id": 29,
+            "element": {
+              "type": "struct",
+              "fields": [
+                { "id": 30, "name": "sku", "required": true, "type": "string" },
+                { "id": 31, "name": "qty", "required": true, "type": "int" }
+              ]
+            },
+            "element-required": false
+          }
+        }
+      ]
+    }
+  ],
+  "default-spec-id": 0,
+  "partition-specs": [{ "spec-id": 0, "fields": [] }],
+  "last-partition-id": 999,
+  "default-sort-order-id": 0,
+  "sort-orders": [{ "order-id": 0, "fields": [] }],
+  "properties": {},
+  "snapshots": [],
+  "snapshot-log": [],
+  "metadata-log": [],
+  "refs": {}
+}

@@ -1,0 +1,32 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "rowless-iceberg"
+version = "0.0.0.dev0"
+description = "Iceberg schema source for rowless, via PyIceberg catalog metadata."
+readme = "README.md"
+requires-python = ">=3.12"
+license = "Apache-2.0"
+authors = [{ name = "Kauvin Lucas", email = "kauvinlucas@gmail.com" }]
+dependencies = [
+    "rowless",
+    # The pyarrow extra, not bare pyiceberg: reading table metadata needs a
+    # FileIO and pyiceberg ships none of its own, so bare pyiceberg installs
+    # and then fails on the first table.
+    #
+    # The floor is 0.12 because that is the first release whose type parser
+    # accepts the v3 geospatial primitives, and `tests/fixtures/types_v3` maps
+    # every type in the spec. 0.9 through 0.11 read the other two fixtures
+    # fine; what they cannot do is parse a `geometry` column at all, which
+    # would make the type corpus untestable rather than partly tested. Checked
+    # by the `adapter-floor` job, not assumed.
+    "pyiceberg[pyarrow]>=0.12",
+]
+
+[project.entry-points."rowless.sources"]
+iceberg = "rowless_iceberg.source:IcebergSource"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/rowless_iceberg"]

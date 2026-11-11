@@ -1,0 +1,28 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "rowless-sql"
+version = "0.0.0.dev0"
+description = "SQL adapter for rowless: sqlglot qualification and type annotation."
+readme = "README.md"
+requires-python = ">=3.12"
+license = "Apache-2.0"
+authors = [{ name = "Kauvin Lucas", email = "kauvinlucas@gmail.com" }]
+dependencies = [
+    "rowless",
+    # 25.7 is the floor because `annotate_types` only takes a `dialect` from
+    # that release on: without it a Snowflake model would be typed with
+    # generic SQL's rules while rowless claimed to have read it as Snowflake.
+    # Declared without extras - `sqlglotc` makes parsing faster and changes no
+    # answer, and the older `sqlglot[rs]` extra now warns that it is
+    # unmaintained - so the choice of tokenizer is the installer's.
+    "sqlglot>=25.7",
+]
+
+[project.entry-points."rowless.engines"]
+sql = "rowless_sql.adapter:SqlAdapter"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/rowless_sql"]

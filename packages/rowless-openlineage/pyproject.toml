@@ -1,0 +1,35 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "rowless-openlineage"
+version = "0.0.0.dev0"
+description = "Emit rowless column lineage as OpenLineage events."
+readme = "README.md"
+requires-python = ">=3.12"
+license = "Apache-2.0"
+authors = [{ name = "Kauvin Lucas", email = "kauvinlucas@gmail.com" }]
+dependencies = [
+    "rowless",
+    # The floor is 1.38 and it is a measured one, not a guess: that is the
+    # first release that exports `StaticDataset` from
+    # `openlineage.client.event_v2`, which is the type a dataset event needs to
+    # carry static lineage. Earlier releases back to 1.30 do have the class,
+    # but only under `openlineage.client.generated.base`, which is generated
+    # code rather than API - importing from there would make this package
+    # depend on the client's build layout. Checked by the `adapter-floor` CI
+    # job against 1.38.0 exactly.
+    "openlineage-python>=1.38",
+]
+
+[project.urls]
+Homepage = "https://github.com/kauvinlucas/rowless"
+Documentation = "https://github.com/kauvinlucas/rowless/tree/main/packages/rowless-openlineage"
+Issues = "https://github.com/kauvinlucas/rowless/issues"
+
+[project.entry-points."rowless.emitters"]
+openlineage = "rowless_openlineage.emitter:OpenLineageEmitter"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/rowless_openlineage"]

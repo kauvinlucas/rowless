@@ -1,0 +1,22 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "rowless-pyspark"
+version = "0.0.0.dev0"
+description = "PySpark adapter for rowless: the analyzed plan, via Spark Connect."
+readme = "README.md"
+requires-python = ">=3.12"
+license = "Apache-2.0"
+authors = [{ name = "Kauvin Lucas", email = "kauvinlucas@gmail.com" }]
+dependencies = [
+    "rowless",
+    "pyspark[connect]>=3.5",
+]
+
+[project.entry-points."rowless.engines"]
+pyspark = "rowless_pyspark.adapter:PySparkAdapter"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/rowless_pyspark"]

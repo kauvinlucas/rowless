@@ -1,0 +1,25 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "rowless-lsp"
+version = "0.0.0.dev0"
+description = "Language server for rowless: schema diagnostics and inline hints."
+readme = "README.md"
+requires-python = ">=3.12"
+license = "Apache-2.0"
+authors = [{ name = "Kauvin Lucas", email = "kauvinlucas@gmail.com" }]
+dependencies = [
+    "rowless",
+    # 2.0 moved `LanguageServer` to `pygls.lsp.server` and made the feature
+    # handlers async, which is what this server is written against. The floor
+    # is the API boundary rather than the oldest release that installs.
+    "pygls>=2.0",
+]
+
+[project.scripts]
+rowless-lsp = "rowless_lsp.server:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/rowless_lsp"]

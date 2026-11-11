@@ -1,0 +1,49 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/kauvinlucas/rowless/main/docs/spec/RowlessNodeFacet.json",
+  "title": "RowlessNodeFacet",
+  "description": "What rowless knows about the node behind a dataset that no standard facet has a slot for: which engine resolved it, where it is defined in the repository, whether rowless could see inside it, and how much lineage was withheld for weak evidence.",
+  "$defs": {
+    "RowlessNodeFacet": {
+      "allOf": [
+        { "$ref": "https://openlineage.io/spec/2-0-2/OpenLineage.json#/$defs/BaseFacet" },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "type": "string",
+              "enum": ["source", "python", "sql", "dbt_model", "sink"],
+              "description": "What the node represents in the rowless graph."
+            },
+            "engine": {
+              "type": ["string", "null"],
+              "description": "Adapter that resolved the schema: polars, duckdb, ibis, pyspark. Null for a source, which no engine was needed to read."
+            },
+            "origin": {
+              "type": ["string", "null"],
+              "description": "Where the relation is defined, as `file:line` when known, else the table URI or model name."
+            },
+            "opaque": {
+              "type": "boolean",
+              "description": "True when rowless could not see inside the node: a failed dry run, an unprobed UDF, a dynamic select. Lineage downstream of an opaque node is incomplete by construction, and the node is published rather than omitted so that the gap is visible instead of looking like a graph that simply ends."
+            },
+            "columns": { "type": "integer", "minimum": 0 },
+            "untracedColumns": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Columns of this dataset published with no column lineage at all."
+            },
+            "withheldEdges": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Column edges rowless resolved but did not publish because the only evidence was a matching column name. Set ROWLESS_OPENLINEAGE_INCLUDE_NAME_MATCH=1 to publish them."
+            }
+          },
+          "required": ["kind", "opaque", "columns", "untracedColumns", "withheldEdges"],
+          "additionalProperties": true
+        }
+      ],
+      "type": "object"
+    }
+  }
+}

@@ -1,0 +1,61 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/kauvinlucas/rowless/main/docs/spec/RowlessCoverageFacet.json",
+  "title": "RowlessCoverageFacet",
+  "description": "How much of the lineage in this event rowless actually verified, and that nothing was executed to produce it. A catalog that cannot tell verified lineage from partially inferred lineage presents both as equally solid, which is the one way this emission could mislead people.",
+  "$defs": {
+    "RowlessCoverageFacet": {
+      "allOf": [
+        { "$ref": "https://openlineage.io/spec/2-0-2/OpenLineage.json#/$defs/BaseFacet" },
+        {
+          "type": "object",
+          "properties": {
+            "executed": {
+              "type": "boolean",
+              "description": "Always false. These events come from a dry run: the pipeline was executed against frames with a schema and no rows, so no data was read or written and this is not a record of a production run."
+            },
+            "confidence": {
+              "type": "string",
+              "enum": ["unknown", "partial", "exact"],
+              "description": "exact when the engine resolved every column itself; partial when some columns are untyped or untraced; unknown when rowless lost confidence, which includes a failed dry run and row-dependent control flow."
+            },
+            "verified": {
+              "type": "boolean",
+              "description": "True only when confidence is exact. Present as well as confidence so a catalog that cannot branch on an enum can still filter."
+            },
+            "columnsTotal": { "type": "integer", "minimum": 0 },
+            "columnsTyped": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Columns with a known, non-ANY dtype."
+            },
+            "columnsTraced": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Columns with lineage evidence, so usable for blast-radius analysis."
+            },
+            "typedRatio": { "type": "number", "minimum": 0, "maximum": 1 },
+            "tracedRatio": { "type": "number", "minimum": 0, "maximum": 1 },
+            "reasons": {
+              "type": "array",
+              "items": { "type": "string" },
+              "description": "Human-readable causes of lost confidence, as `rowless explain` prints them."
+            }
+          },
+          "required": [
+            "executed",
+            "confidence",
+            "verified",
+            "columnsTotal",
+            "columnsTyped",
+            "columnsTraced",
+            "typedRatio",
+            "tracedRatio"
+          ],
+          "additionalProperties": true
+        }
+      ],
+      "type": "object"
+    }
+  }
+}

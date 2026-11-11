@@ -1,0 +1,307 @@
+{
+  "metadata": {
+    "dbt_schema_version": "https://schemas.getdbt.com/dbt/manifest/v12.json",
+    "dbt_version": "1.8.7",
+    "generated_at": "2026-02-01T10:00:00.000000Z",
+    "invocation_id": "4b4f6d0e-9c21-4a7f-8f51-2c0d6b1a7e33",
+    "env": {},
+    "project_name": "shop",
+    "project_id": "cf3ab4ac9f2c4b0f9f0f8a2f1b7cde21",
+    "user_id": null,
+    "send_anonymous_usage_stats": false,
+    "adapter_type": "postgres"
+  },
+  "nodes": {
+    "model.shop.stg_orders": {
+      "database": "shop",
+      "schema": "analytics",
+      "name": "stg_orders",
+      "resource_type": "model",
+      "package_name": "shop",
+      "path": "staging/stg_orders.sql",
+      "original_file_path": "models/staging/stg_orders.sql",
+      "unique_id": "model.shop.stg_orders",
+      "fqn": ["shop", "staging", "stg_orders"],
+      "alias": "stg_orders",
+      "checksum": {"name": "sha256", "checksum": "6b1d1b3f"},
+      "config": {
+        "enabled": true,
+        "materialized": "view",
+        "contract": {"enforced": true, "alias_types": true}
+      },
+      "tags": ["staging"],
+      "description": "Orders, one row per order, with the amount in cents.",
+      "columns": {
+        "order_id": {
+          "name": "order_id",
+          "description": "Primary key.",
+          "meta": {},
+          "data_type": "bigint",
+          "constraints": [{"type": "not_null"}],
+          "tags": []
+        },
+        "status": {
+          "name": "status",
+          "description": "Lifecycle status.",
+          "meta": {},
+          "data_type": "varchar(20)",
+          "constraints": [],
+          "tags": []
+        },
+        "amount_cents": {
+          "name": "amount_cents",
+          "description": "Order total, in cents. Renamed from amount.",
+          "meta": {},
+          "data_type": "numeric(18,2)",
+          "constraints": [],
+          "tags": []
+        },
+        "created_at": {
+          "name": "created_at",
+          "description": "When the order was placed.",
+          "meta": {},
+          "data_type": "timestamp with time zone",
+          "constraints": [],
+          "tags": []
+        }
+      },
+      "patch_path": "shop://models/staging/schema.yml",
+      "language": "sql",
+      "contract": {"enforced": true, "alias_types": true, "checksum": "a1b2c3"},
+      "raw_code": "select * from {{ source('raw', 'orders') }}",
+      "compiled": true,
+      "compiled_code": "select order_id, status, amount_cents, created_at from \"shop\".\"raw\".\"orders\"",
+      "relation_name": "\"shop\".\"analytics\".\"stg_orders\"",
+      "depends_on": {"macros": [], "nodes": ["source.shop.raw.orders"]}
+    },
+    "model.shop.daily_revenue": {
+      "database": "shop",
+      "schema": "analytics",
+      "name": "daily_revenue",
+      "resource_type": "model",
+      "package_name": "shop",
+      "path": "marts/daily_revenue.sql",
+      "original_file_path": "models/marts/daily_revenue.sql",
+      "unique_id": "model.shop.daily_revenue",
+      "fqn": ["shop", "marts", "daily_revenue"],
+      "alias": "daily_revenue",
+      "checksum": {"name": "sha256", "checksum": "71aa0c42"},
+      "config": {
+        "enabled": true,
+        "materialized": "table",
+        "contract": {"enforced": false, "alias_types": true}
+      },
+      "tags": [],
+      "description": "Revenue per day.",
+      "columns": {
+        "day": {
+          "name": "day",
+          "description": "Calendar day.",
+          "meta": {},
+          "data_type": "date",
+          "constraints": [],
+          "tags": []
+        },
+        "revenue": {
+          "name": "revenue",
+          "description": "Summed order amount.",
+          "meta": {},
+          "data_type": "numeric(18,2)",
+          "constraints": [],
+          "tags": []
+        }
+      },
+      "patch_path": "shop://models/marts/schema.yml",
+      "language": "sql",
+      "contract": {"enforced": false, "alias_types": true, "checksum": null},
+      "raw_code": "select date_trunc('day', created_at) as day, sum(amount_cents) as revenue, count(*) as orders_count from {{ ref('stg_orders') }} group by 1",
+      "compiled": true,
+      "compiled_code": "select date_trunc('day', created_at) as day, sum(amount_cents) as revenue, count(*) as orders_count from \"shop\".\"analytics\".\"stg_orders\" group by 1",
+      "relation_name": "\"shop\".\"analytics\".\"daily_revenue\"",
+      "depends_on": {"macros": [], "nodes": ["model.shop.stg_orders"]}
+    },
+    "model.shop.finance_kpis": {
+      "database": "shop",
+      "schema": "analytics",
+      "name": "finance_kpis",
+      "resource_type": "model",
+      "package_name": "shop",
+      "path": "marts/finance_kpis.sql",
+      "original_file_path": "models/marts/finance_kpis.sql",
+      "unique_id": "model.shop.finance_kpis",
+      "fqn": ["shop", "marts", "finance_kpis"],
+      "alias": "finance_kpis",
+      "checksum": {"name": "sha256", "checksum": "0f9d2ab1"},
+      "config": {
+        "enabled": true,
+        "materialized": "table",
+        "contract": {"enforced": false, "alias_types": true}
+      },
+      "tags": ["finance"],
+      "description": "",
+      "columns": {},
+      "patch_path": null,
+      "language": "sql",
+      "contract": {"enforced": false, "alias_types": true, "checksum": null},
+      "raw_code": "select day, revenue from {{ ref('daily_revenue') }}",
+      "compiled": true,
+      "compiled_code": "select day, revenue from \"shop\".\"analytics\".\"daily_revenue\"",
+      "relation_name": "\"shop\".\"analytics\".\"finance_kpis\"",
+      "depends_on": {"macros": [], "nodes": ["model.shop.daily_revenue"]}
+    },
+    "model.shop.revenue_report": {
+      "database": "shop",
+      "schema": "analytics",
+      "name": "revenue_report",
+      "resource_type": "model",
+      "package_name": "shop",
+      "path": "marts/revenue_report.py",
+      "original_file_path": "models/marts/revenue_report.py",
+      "unique_id": "model.shop.revenue_report",
+      "fqn": ["shop", "marts", "revenue_report"],
+      "alias": "revenue_report",
+      "checksum": {"name": "sha256", "checksum": "c41be0d7"},
+      "config": {
+        "enabled": true,
+        "materialized": "table",
+        "contract": {"enforced": false, "alias_types": true}
+      },
+      "tags": [],
+      "description": "A dbt Python model.",
+      "columns": {},
+      "patch_path": null,
+      "language": "python",
+      "contract": {"enforced": false, "alias_types": true, "checksum": null},
+      "raw_code": "def model(dbt, session):\n    return dbt.ref(\"daily_revenue\")\n",
+      "compiled": true,
+      "compiled_code": "def model(dbt, session):\n    return dbt.ref(\"daily_revenue\")\n",
+      "relation_name": "\"shop\".\"analytics\".\"revenue_report\"",
+      "depends_on": {"macros": [], "nodes": ["model.shop.daily_revenue"]}
+    },
+    "seed.shop.country_codes": {
+      "database": "shop",
+      "schema": "analytics",
+      "name": "country_codes",
+      "resource_type": "seed",
+      "package_name": "shop",
+      "path": "country_codes.csv",
+      "original_file_path": "seeds/country_codes.csv",
+      "unique_id": "seed.shop.country_codes",
+      "fqn": ["shop", "country_codes"],
+      "alias": "country_codes",
+      "checksum": {"name": "sha256", "checksum": "2c9a771e"},
+      "config": {"enabled": true, "materialized": "seed"},
+      "tags": [],
+      "description": "",
+      "columns": {},
+      "patch_path": null,
+      "language": "sql",
+      "contract": {"enforced": false, "alias_types": true, "checksum": null},
+      "raw_code": "",
+      "relation_name": "\"shop\".\"analytics\".\"country_codes\"",
+      "depends_on": {"macros": [], "nodes": []}
+    },
+    "test.shop.not_null_stg_orders_order_id.3f8c1d2a90": {
+      "database": "shop",
+      "schema": "analytics_dbt_test__audit",
+      "name": "not_null_stg_orders_order_id",
+      "resource_type": "test",
+      "package_name": "shop",
+      "path": "not_null_stg_orders_order_id.sql",
+      "original_file_path": "models/staging/schema.yml",
+      "unique_id": "test.shop.not_null_stg_orders_order_id.3f8c1d2a90",
+      "fqn": ["shop", "staging", "not_null_stg_orders_order_id"],
+      "alias": "not_null_stg_orders_order_id",
+      "checksum": {"name": "none", "checksum": ""},
+      "config": {"enabled": true, "materialized": "test", "severity": "ERROR"},
+      "tags": [],
+      "description": "",
+      "columns": {},
+      "language": "sql",
+      "raw_code": "{{ test_not_null(**_dbt_generic_test_kwargs) }}",
+      "compiled": true,
+      "compiled_code": "select order_id from \"shop\".\"analytics\".\"stg_orders\" where order_id is null",
+      "relation_name": null,
+      "depends_on": {"macros": ["macro.dbt.test_not_null"], "nodes": ["model.shop.stg_orders"]}
+    }
+  },
+  "sources": {
+    "source.shop.raw.orders": {
+      "database": "shop",
+      "schema": "raw",
+      "name": "orders",
+      "resource_type": "source",
+      "package_name": "shop",
+      "path": "models/staging/sources.yml",
+      "original_file_path": "models/staging/sources.yml",
+      "unique_id": "source.shop.raw.orders",
+      "fqn": ["shop", "staging", "raw", "orders"],
+      "source_name": "raw",
+      "source_description": "The application database, replicated hourly.",
+      "loader": "fivetran",
+      "identifier": "orders",
+      "description": "Raw orders, straight off the replica.",
+      "columns": {
+        "order_id": {
+          "name": "order_id",
+          "description": "Primary key.",
+          "meta": {},
+          "data_type": "bigint",
+          "constraints": [],
+          "tags": []
+        },
+        "status": {
+          "name": "status",
+          "description": "",
+          "meta": {},
+          "data_type": "varchar(20)",
+          "constraints": [],
+          "tags": []
+        },
+        "amount_cents": {
+          "name": "amount_cents",
+          "description": "Renamed from amount in this branch.",
+          "meta": {},
+          "data_type": "numeric(18,2)",
+          "constraints": [],
+          "tags": []
+        },
+        "created_at": {
+          "name": "created_at",
+          "description": "",
+          "meta": {},
+          "data_type": "timestamp with time zone",
+          "constraints": [],
+          "tags": []
+        }
+      },
+      "config": {"enabled": true},
+      "patch_path": null,
+      "unrendered_config": {},
+      "relation_name": "\"shop\".\"raw\".\"orders\"",
+      "created_at": 1770000000.0
+    }
+  },
+  "macros": {},
+  "docs": {},
+  "exposures": {},
+  "metrics": {},
+  "groups": {},
+  "selectors": {},
+  "disabled": {},
+  "parent_map": {
+    "model.shop.stg_orders": ["source.shop.raw.orders"],
+    "model.shop.daily_revenue": ["model.shop.stg_orders"],
+    "model.shop.finance_kpis": ["model.shop.daily_revenue"],
+    "model.shop.revenue_report": ["model.shop.daily_revenue"]
+  },
+  "child_map": {
+    "source.shop.raw.orders": ["model.shop.stg_orders"],
+    "model.shop.stg_orders": ["model.shop.daily_revenue"],
+    "model.shop.daily_revenue": ["model.shop.finance_kpis", "model.shop.revenue_report"]
+  },
+  "group_map": {},
+  "saved_queries": {},
+  "semantic_models": {},
+  "unit_tests": {}
+}

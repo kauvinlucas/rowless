@@ -1,0 +1,26 @@
+# Ownership. The proposal splits the work into self-contained workstreams, and
+# this file is where that split becomes real: an owner gets review rights over
+# their package and nothing else.
+#
+# Every package is currently owned by @kauvinlucas. The per-package lines are
+# kept anyway, because handing one engine to someone who uses it daily should
+# be a one-line change. See GOVERNANCE.md.
+
+/packages/rowless-core/        @kauvinlucas
+/packages/rowless-all/         @kauvinlucas
+/docs/                         @kauvinlucas
+/.github/                      @kauvinlucas
+
+/packages/rowless-polars/      @kauvinlucas
+/packages/rowless-pandas/      @kauvinlucas
+/packages/rowless-duckdb/      @kauvinlucas
+/packages/rowless-sql/         @kauvinlucas
+/packages/rowless-dbt/         @kauvinlucas
+/packages/rowless-pyspark/     @kauvinlucas
+/packages/rowless-ibis/        @kauvinlucas
+/packages/rowless-iceberg/     @kauvinlucas
+
+/packages/rowless-pytest/      @kauvinlucas
+/packages/rowless-openlineage/ @kauvinlucas
+/packages/rowless-lsp/         @kauvinlucas
+/integrations/                 @kauvinlucas

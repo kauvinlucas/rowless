@@ -1,0 +1,112 @@
+{
+  "format-version": 2,
+  "table-uuid": "6d3f4a9e-1c3b-4f58-9c1e-2b6a8e4d0f11",
+  "location": "file:///warehouse/sales/orders",
+  "last-sequence-number": 3,
+  "last-updated-ms": 1731196800000,
+  "last-column-id": 6,
+  "current-schema-id": 2,
+  "schemas": [
+    {
+      "type": "struct",
+      "schema-id": 0,
+      "fields": [
+        { "id": 1, "name": "order_id", "required": true, "type": "long" },
+        { "id": 2, "name": "amount", "required": false, "type": "int" },
+        { "id": 3, "name": "status", "required": false, "type": "string" },
+        { "id": 4, "name": "customer_email", "required": false, "type": "string" }
+      ]
+    },
+    {
+      "type": "struct",
+      "schema-id": 1,
+      "identifier-field-ids": [1],
+      "fields": [
+        { "id": 1, "name": "order_id", "required": true, "type": "long" },
+        { "id": 2, "name": "amount_cents", "required": false, "type": "long" },
+        {
+          "id": 3,
+          "name": "status",
+          "required": false,
+          "type": "string",
+          "doc": "placed, shipped or cancelled"
+        },
+        { "id": 4, "name": "customer_email", "required": false, "type": "string" }
+      ]
+    },
+    {
+      "type": "struct",
+      "schema-id": 2,
+      "identifier-field-ids": [1],
+      "fields": [
+        { "id": 1, "name": "order_id", "required": true, "type": "long" },
+        { "id": 2, "name": "amount_cents", "required": false, "type": "long" },
+        {
+          "id": 3,
+          "name": "order_status",
+          "required": false,
+          "type": "string",
+          "doc": "placed, shipped or cancelled"
+        },
+        { "id": 5, "name": "created_at", "required": false, "type": "timestamptz" },
+        {
+          "id": 6,
+          "name": "tags",
+          "required": false,
+          "type": {
+            "type": "list",
+            "element-id": 7,
+            "element": "string",
+            "element-required": false
+          }
+        }
+      ]
+    }
+  ],
+  "default-spec-id": 0,
+  "partition-specs": [{ "spec-id": 0, "fields": [] }],
+  "last-partition-id": 999,
+  "default-sort-order-id": 0,
+  "sort-orders": [{ "order-id": 0, "fields": [] }],
+  "properties": { "write.format.default": "parquet" },
+  "current-snapshot-id": 7788990011223344,
+  "snapshots": [
+    {
+      "snapshot-id": 1122334455667788,
+      "sequence-number": 1,
+      "timestamp-ms": 1730246400000,
+      "schema-id": 0,
+      "manifest-list": "file:///warehouse/sales/orders/metadata/snap-1122334455667788.avro",
+      "summary": { "operation": "append" }
+    },
+    {
+      "snapshot-id": 3344556677889900,
+      "parent-snapshot-id": 1122334455667788,
+      "sequence-number": 2,
+      "timestamp-ms": 1730851200000,
+      "schema-id": 1,
+      "manifest-list": "file:///warehouse/sales/orders/metadata/snap-3344556677889900.avro",
+      "summary": { "operation": "append" }
+    },
+    {
+      "snapshot-id": 7788990011223344,
+      "parent-snapshot-id": 3344556677889900,
+      "sequence-number": 3,
+      "timestamp-ms": 1731196800000,
+      "schema-id": 2,
+      "manifest-list": "file:///warehouse/sales/orders/metadata/snap-7788990011223344.avro",
+      "summary": { "operation": "append" }
+    }
+  ],
+  "snapshot-log": [
+    { "snapshot-id": 1122334455667788, "timestamp-ms": 1730246400000 },
+    { "snapshot-id": 3344556677889900, "timestamp-ms": 1730851200000 },
+    { "snapshot-id": 7788990011223344, "timestamp-ms": 1731196800000 }
+  ],
+  "metadata-log": [],
+  "refs": {
+    "main": { "snapshot-id": 7788990011223344, "type": "branch" },
+    "release-2024-11": { "snapshot-id": 3344556677889900, "type": "tag" },
+    "audit": { "snapshot-id": 1122334455667788, "type": "branch" }
+  }
+}

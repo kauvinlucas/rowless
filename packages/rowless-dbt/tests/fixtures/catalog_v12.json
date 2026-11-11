@@ -1,0 +1,76 @@
+{
+  "metadata": {
+    "dbt_schema_version": "https://schemas.getdbt.com/dbt/catalog/v1.json",
+    "dbt_version": "1.8.7",
+    "generated_at": "2026-02-01T10:05:00.000000Z",
+    "invocation_id": "9a2c7e51-6b14-4d8a-93f0-7e5b1c2a4d88",
+    "env": {}
+  },
+  "nodes": {
+    "model.shop.daily_revenue": {
+      "metadata": {
+        "type": "BASE TABLE",
+        "schema": "analytics",
+        "name": "daily_revenue",
+        "database": "shop",
+        "comment": null,
+        "owner": "analytics"
+      },
+      "columns": {
+        "day": {"type": "date", "index": 1, "name": "day", "comment": null},
+        "revenue": {"type": "numeric(18,2)", "index": 2, "name": "revenue", "comment": null},
+        "orders_count": {"type": "bigint", "index": 3, "name": "orders_count", "comment": null}
+      },
+      "stats": {},
+      "unique_id": "model.shop.daily_revenue"
+    },
+    "seed.shop.country_codes": {
+      "metadata": {
+        "type": "BASE TABLE",
+        "schema": "analytics",
+        "name": "country_codes",
+        "database": "shop",
+        "comment": null,
+        "owner": "analytics"
+      },
+      "columns": {
+        "code": {"type": "character(2)", "index": 1, "name": "code", "comment": null},
+        "country": {"type": "text", "index": 2, "name": "country", "comment": null}
+      },
+      "stats": {},
+      "unique_id": "seed.shop.country_codes"
+    }
+  },
+  "sources": {
+    "source.shop.raw.orders": {
+      "metadata": {
+        "type": "BASE TABLE",
+        "schema": "raw",
+        "name": "orders",
+        "database": "shop",
+        "comment": null,
+        "owner": "replication"
+      },
+      "columns": {
+        "order_id": {"type": "bigint", "index": 1, "name": "order_id", "comment": null},
+        "status": {"type": "character varying(20)", "index": 2, "name": "status", "comment": null},
+        "amount_cents": {
+          "type": "numeric(18,2)",
+          "index": 3,
+          "name": "amount_cents",
+          "comment": null
+        },
+        "created_at": {
+          "type": "timestamp with time zone",
+          "index": 4,
+          "name": "created_at",
+          "comment": null
+        }
+      },
+      "stats": {},
+      "unique_id": "source.shop.raw.orders"
+    }
+  },
+  "errors": null,
+  "_compile_results": null
+}

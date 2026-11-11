@@ -1,0 +1,5 @@
+# Minimal configuration: one source mapping, nothing else.
+roots = ["."]
+
+[sources]
+"lake://*" = "json://schemas/{name}.json"

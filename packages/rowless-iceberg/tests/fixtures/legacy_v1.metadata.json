@@ -1,0 +1,30 @@
+{
+  "format-version": 1,
+  "table-uuid": "0f1e2d3c-4b5a-4968-8778-6a5b4c3d2e1f",
+  "location": "file:///warehouse/legacy/events",
+  "last-updated-ms": 1609459200000,
+  "last-column-id": 2,
+  "schema": {
+    "type": "struct",
+    "fields": [
+      { "id": 1, "name": "event_id", "required": true, "type": "long" },
+      { "id": 2, "name": "payload", "required": false, "type": "string" }
+    ]
+  },
+  "partition-spec": [],
+  "default-spec-id": 0,
+  "partition-specs": [{ "spec-id": 0, "fields": [] }],
+  "last-partition-id": 999,
+  "properties": {},
+  "current-snapshot-id": 5566778899001122,
+  "snapshots": [
+    {
+      "snapshot-id": 5566778899001122,
+      "timestamp-ms": 1609459200000,
+      "manifest-list": "file:///warehouse/legacy/events/metadata/snap-5566778899001122.avro",
+      "summary": { "operation": "append" }
+    }
+  ],
+  "snapshot-log": [{ "snapshot-id": 5566778899001122, "timestamp-ms": 1609459200000 }],
+  "metadata-log": []
+}

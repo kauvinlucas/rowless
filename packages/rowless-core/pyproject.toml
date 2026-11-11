@@ -1,0 +1,64 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "rowless"
+version = "0.0.0.dev0"
+description = "A dry-run type checker for data pipelines: schemas without data."
+readme = "README.md"
+requires-python = ">=3.12"
+license = "Apache-2.0"
+authors = [{ name = "Kauvin Lucas", email = "kauvinlucas@gmail.com" }]
+keywords = ["dataframe", "schema", "lineage", "data-engineering", "static-analysis"]
+classifiers = [
+    "Development Status :: 1 - Planning",
+    "Intended Audience :: Developers",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Software Development :: Quality Assurance",
+    "Typing :: Typed",
+]
+dependencies = [
+    "typer>=0.12",
+    "rich>=13.7",
+    "pydantic>=2.7",
+    "pyyaml>=6.0",
+]
+
+[project.optional-dependencies]
+parquet = ["pyarrow>=16.0"]
+contracts = ["pandera>=0.20"]
+dagster = ["dagster>=1.7"]
+airflow = ["apache-airflow>=2.9"]
+dlt = ["dlt>=0.5"]
+warehouse = ["sqlalchemy>=2.0"]
+
+[project.urls]
+Homepage = "https://github.com/kauvinlucas/rowless"
+Documentation = "https://github.com/kauvinlucas/rowless/tree/main/docs"
+Issues = "https://github.com/kauvinlucas/rowless/issues"
+
+[project.scripts]
+rowless = "rowless.cli.main:app"
+
+# --- Plugin registries -------------------------------------------------------
+# Engine adapters live in their own distributions and register here. Sources and
+# discovery backends ship with core but use the same mechanism, so third parties
+# extend them the same way.
+
+[project.entry-points."rowless.sources"]
+parquet = "rowless.sources.parquet:ParquetSource"
+pandera = "rowless.sources.contracts:PanderaSource"
+dataframely = "rowless.sources.contracts:DataframelySource"
+patito = "rowless.sources.contracts:PatitoSource"
+information_schema = "rowless.sources.information_schema:InformationSchemaSource"
+json = "rowless.sources.literal:JsonSchemaSource"
+
+[project.entry-points."rowless.discovery"]
+plain = "rowless.discovery.plain:PlainFunctionDiscovery"
+dagster = "rowless.discovery.dagster:DagsterDiscovery"
+airflow = "rowless.discovery.airflow:AirflowDiscovery"
+dlt = "rowless.discovery.dlt:DltDiscovery"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/rowless"]

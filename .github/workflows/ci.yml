@@ -1,0 +1,160 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v3
+        with:
+          enable-cache: true
+      - run: uv run nox -s lint types
+
+  core:
+    # Core must pass with no engine installed. If this job needs an engine,
+    # something has leaked out of an adapter and into core.
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python: ["3.12", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v3
+        with:
+          enable-cache: true
+      - run: uv run --package rowless --python ${{ matrix.python }} pytest packages/rowless-core
+
+  adapters:
+    # One isolated environment per adapter, so a broken engine release takes
+    # down one cell rather than the whole matrix. fail-fast off for the same
+    # reason: an adapter owner needs to see their own cell.
+    #
+    # The last three are not adapters but the same deal: one distribution, one
+    # environment, its own cell. rowless-lsp installs pygls and no engine,
+    # which is what keeps its suite testing the server rather than Polars.
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        adapter:
+          [polars, pandas, duckdb, sql, dbt, ibis, iceberg, pytest, openlineage, lsp]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v3
+        with:
+          enable-cache: true
+      - run: uv run --package rowless-${{ matrix.adapter }} pytest packages/rowless-${{ matrix.adapter }}
+
+  adapter-floor:
+    # An adapter declares a version floor in `requires`, and a floor nobody
+    # tests is a guess. This runs the suite against the oldest engine release
+    # the adapter claims to support, which is where a method that only exists
+    # further up the range shows up.
+    #
+    # Six entries so far: rowless-duckdb, rowless-pandas, rowless-sql,
+    # rowless-ibis, rowless-iceberg and rowless-openlineage, whose READMEs each
+    # document the behaviours that differ inside their range. Adapters join as
+    # their owners verify their own floor. rowless-pyspark tests its floor in
+    # the `pyspark` job below instead, because it needs a JVM that this matrix
+    # does not set up.
+    #
+    # rowless-pandas appears twice on purpose, because it has two floors. Its
+    # cell in the matrix above installs no pyarrow, which is the pandas most
+    # people have and the one where five dtypes do not exist at all; the
+    # pyarrow cell here is the floor of its `arrow` extra, where the dtype
+    # table is complete. Both are a supported install, so both are tested.
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - adapter: duckdb
+            pin: duckdb==1.0.0
+          # The floor is `pandas>=2.2`, and this pins the last 2.2.x rather
+          # than 2.2.0: 2.2.0 predates numpy 2 and crashes on import against
+          # it, which is a pandas packaging problem and not something the
+          # adapter can be tested through.
+          - adapter: pandas
+            pin: pandas==2.2.3
+          - adapter: pandas
+            pin: pyarrow==16.0.0
+          # The floor is `sqlglot>=25.7`, which is the first release whose
+          # `annotate_types` takes a dialect. Three of its annotations differ
+          # from the current release's - `length()`, `row_number()` and
+          # arithmetic on a decimal - and the adapter's README says so, which
+          # is only a claim worth making because this cell runs.
+          - adapter: sql
+            pin: sqlglot==25.7.0
+          - adapter: ibis
+            pin: ibis-framework==10.0.0
+          - adapter: iceberg
+            pin: pyiceberg==0.12.0
+          - adapter: openlineage
+            pin: openlineage-python==1.38.0
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v3
+        with:
+          enable-cache: true
+      - run: >-
+          uv run --package rowless-${{ matrix.adapter }} --with "${{ matrix.pin }}"
+          pytest packages/rowless-${{ matrix.adapter }}
+
+  pyspark:
+    # Separate from the matrix: a JVM, a large download, and a Connect server.
+    # Java 17 is what Spark 4 requires, and setup-java exports JAVA_HOME, which
+    # is how the adapter decides local mode is usable at all - without it the
+    # conformance suite would skip and this job would prove nothing.
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # The current release, and the declared floor. The floor is a range
+          # rather than a pin because the adapter supports the 3.5 *line* and
+          # the point is to run against its newest patch, where the Connect
+          # DataFrame is still a separate class and there is no TIME type.
+          - pin: ""
+          - pin: "pyspark[connect]<3.6"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+      - uses: astral-sh/setup-uv@v3
+        with:
+          enable-cache: true
+      - run: >-
+          uv run --package rowless-pyspark
+          ${{ matrix.pin && format('--with "{0}"', matrix.pin) || '' }}
+          pytest packages/rowless-pyspark
+
+  conformance:
+    # Every adapter against the shared suite, in one environment. This is the
+    # job that catches an adapter drifting from the contract.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v3
+        with:
+          enable-cache: true
+      - run: uv run nox -s conformance
+
+  examples:
+    # Dogfooding: rowless must find the planted finding in every example, and
+    # must not invent any others.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v3
+      - run: uv run pytest tests/test_examples.py

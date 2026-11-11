@@ -33,7 +33,7 @@ Breadth across engines, plus the lowest-friction adoption path.
 - [x] `rowless-pandas` - including the dtype drift fixup table
 - [x] `rowless-duckdb` - and with it the Python-to-SQL seam
 - [x] `rowless-sql` - credential-free SQL via sqlglot
-- [ ] `rowless-pytest` - contract tests in an existing suite
+- [x] `rowless-pytest` - contract tests in an existing suite
 - [x] `rowless.discovery` - plain functions and Dagster
 - [x] adapter conformance suite complete enough to onboard an owner
 
@@ -117,6 +117,48 @@ with a note saying it should move the day this adapter landed. It has:
 `rowless_sql.dtypes` owns both directions now and `rowless_dbt.dtypes` parses
 and delegates, with a test asserting the two agree so the copy cannot come
 back.
+
+`rowless-pytest` is implemented, which completes this phase and is the
+adoption path the proposal called the lowest-friction one: a team adds a test
+file and nothing else - no CI stage, no new command, no credentials. The
+assertion is `rowless.api.compare_schemas`, the same comparison behind
+`rowless.assert_schema`, and the inputs resolve through the same
+`rowless.toml`, so a contract test and `rowless check` cannot hold different
+opinions about a column. What the plugin owns is the part only pytest can:
+the engine a test needs decided at collection time, one source cache across
+the suite, and the coverage the suite earned printed next to its passes.
+
+Three things about it are worth recording.
+
+The first is that the strictness is the feature, and it is where the work
+went. An unverified result fails the test, so a pipeline that grows an
+`if df.is_empty()` turns its contract test red rather than leaving it green
+and meaningless; an ANY column fails the same way even against a matching
+declaration, because the dtype algebra lets ANY match anything and a test is
+not inference. `allow_unverified=True` is the per-assertion opt-out, and the
+session summary counts how often a suite used it, since an opt-out nobody can
+see is an opt-out nobody reviews.
+
+The second is that passes alone overstate a contract suite, so the terminal
+summary reports typed coverage next to the test count and
+`--rowless-min-coverage` can fail a run whose every assertion passed. That is
+the same ratchet `min_coverage` gives the CLI, which is where the floor
+defaults from - the alternative is a suite of forty green tests over a schema
+rowless typed half of, with nothing anywhere saying so.
+
+The third is that being installed is not the same as being involved. A pytest
+plugin ships as an entry point, so pytest loads this one in every suite in the
+environment; reading config at start-up would turn a stranger's broken
+`[tool.rowless]` table into somebody's failing test run. Nothing is
+discovered, cached or created until a fixture is first asked for, and a suite
+with no rowless tests in it prints no rowless line and writes no cache.
+
+The core change it needed is three private helpers in `rowless.api` becoming
+public - `compare_schemas`, `as_schema` and `resolve_inputs` - so the plugin
+frames the same answer instead of forming a second one. `resolve_inputs`
+returns the URIs alongside the schemas, which also fixed something in
+`assert_schema`: a pipeline that calls `rowless.source()` in its body rather
+than taking the frame as a parameter now resolves there too.
 
 ## Months 4-6: CI
 

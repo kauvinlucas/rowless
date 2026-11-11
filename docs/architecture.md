@@ -35,9 +35,16 @@ rowless check
 
 `rowless.check` is that pipeline as a function, returning a report and a
 lineage graph and printing nothing. The CLI picks a renderer and an exit code;
-the pytest plugin, the language server and `rowless diff`'s base-revision
-build all enter at the same place, so there is one answer to "what does
-rowless do" rather than four.
+the language server and `rowless diff`'s base-revision build enter at the same
+place, so there is one answer to "what does rowless do" rather than three.
+
+The pytest plugin enters one layer lower, at `rowless.runtime.dryrun`, and the
+difference is worth stating: a check *discovers* the pipelines in a tree and
+runs each one in a sandboxed subprocess, while a contract test names the
+function it is about and the test process already imported it. So the plugin
+skips discovery and the sandbox, and shares the parts where a second opinion
+would be a bug - source resolution through `rowless.sources`, and the schema
+comparison in `rowless.api`, which is what `rowless.assert_schema` uses too.
 
 Core never imports an engine library. That is enforced by the CI job that runs
 core tests in an environment with no engine installed: if that job starts

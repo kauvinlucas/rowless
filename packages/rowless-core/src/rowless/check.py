@@ -1,9 +1,15 @@
 """One run of rowless: discover, resolve, dry-run, score.
 
 The layer between the CLI and the runtime. It exists so that `rowless check`,
-the pytest plugin, the LSP and `rowless diff`'s base-revision build all take
-the same path: discovery, then source resolution in the parent process, then
-one sandboxed dry run per pipeline, then one report.
+the LSP and `rowless diff`'s base-revision build all take the same path:
+discovery, then source resolution in the parent process, then one sandboxed
+dry run per pipeline, then one report.
+
+The pytest plugin is the one surface that does not come through here, because
+it has nothing to discover: a contract test names its pipeline and the test
+process has already imported it. It calls `rowless.runtime.dryrun` directly
+and shares the parts where disagreeing would be a bug - `rowless.sources` and
+the comparison in `rowless.api`.
 
 Nothing here knows about an engine, and nothing here prints. The CLI picks a
 renderer; this module produces the `Report` and the lineage graph.

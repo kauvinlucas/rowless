@@ -60,12 +60,12 @@ jobs:
     # the adapter claims to support, which is where a method that only exists
     # further up the range shows up.
     #
-    # Six entries so far: rowless-duckdb, rowless-pandas, rowless-sql,
-    # rowless-ibis, rowless-iceberg and rowless-openlineage, whose READMEs each
-    # document the behaviours that differ inside their range. Adapters join as
-    # their owners verify their own floor. rowless-pyspark tests its floor in
-    # the `pyspark` job below instead, because it needs a JVM that this matrix
-    # does not set up.
+    # Seven entries so far: rowless-duckdb, rowless-pandas, rowless-sql,
+    # rowless-ibis, rowless-iceberg, rowless-openlineage and rowless-pytest,
+    # whose READMEs each document the behaviours that differ inside their
+    # range. Adapters join as their owners verify their own floor.
+    # rowless-pyspark tests its floor in the `pyspark` job below instead,
+    # because it needs a JVM that this matrix does not set up.
     #
     # rowless-pandas appears twice on purpose, because it has two floors. Its
     # cell in the matrix above installs no pyarrow, which is the pandas most
@@ -100,6 +100,12 @@ jobs:
             pin: pyiceberg==0.12.0
           - adapter: openlineage
             pin: openlineage-python==1.38.0
+          # Not an engine floor: `rowless-pytest` declares `pytest>=8.0`, which
+          # is a supported-line choice rather than an API boundary. It is here
+          # because the plugin hooks into pytest's own session and collection,
+          # which is exactly the surface that moves between majors.
+          - adapter: pytest
+            pin: pytest==8.0.0
     steps:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v3

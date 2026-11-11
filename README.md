@@ -83,8 +83,23 @@ BREAKING  stg_orders.amount -> amount_cents
 > what is left is in core rather than in one: a dbt SQL model is discovered and
 > reported as unchecked, because its target is a node id rather than an
 > importable function and the runtime has no path yet for a pipeline that is a
-> compiled query. `rowless-pytest` is the other thing still to build. The adapter
-> contract is settled and the conformance suite is the specification: see
+> compiled query. `rowless-pytest` is implemented as well, and it is the last
+> package in the plan and the one that asks a team for least: a test file, no CI
+> stage, no new command, no credentials. It runs the comparison
+> `rowless.assert_schema` runs and resolves its inputs through the same
+> `rowless.toml`, so a contract test cannot hold a different opinion from
+> `rowless check` about a column - what it adds is the half only pytest can do.
+> The engine a test needs is decided at collection time, so a contributor who
+> has pandas and not Polars gets a skip naming the missing engine rather than an
+> error; one source cache serves the whole suite; an unverified result fails the
+> test instead of passing quietly, with a named per-assertion opt-out the summary
+> counts; and typed coverage prints next to the passes, where
+> `--rowless-min-coverage` can fail a run in which every assertion passed,
+> because forty green tests over a schema rowless typed half of is not the same
+> state of the world as forty over one it typed all of. With it every package in
+> the layout below is implemented, and what is left is outside them: the GitHub
+> Action, Airflow and dlt discovery, and the core runtime path named above. The
+> adapter contract is settled and the conformance suite is the specification: see
 > [docs/writing-an-adapter.md](docs/writing-an-adapter.md), with
 > [rowless-polars](packages/rowless-polars/) as the worked example. Read the
 > [proposal](docs/rowless-proposal.html) for the pitch and

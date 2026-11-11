@@ -160,7 +160,7 @@ def assert_schema(
     target: Callable[..., Any],
     expected: Schema | Mapping[str, str],
     *,
-    inputs: Mapping[str, Schema | str] | None = None,
+    inputs: Mapping[str, Schema | Mapping[str, str] | str] | None = None,
     exact: bool = True,
 ) -> None:
     """Contract-test a pipeline in milliseconds. Backs the pytest plugin.
@@ -177,10 +177,15 @@ def assert_schema(
     """
     from rowless.runtime.dryrun import dry_run_callable
 
-    wanted = _as_schema(expected)
-    resolved = _resolve_test_inputs(target, inputs)
+    wanted = as_schema(expected)
+    resolved = resolve_inputs(target, inputs)
     marker = marker_of(target)
-    result = dry_run_callable(target, resolved, engine=marker.engine if marker else None)
+    result = dry_run_callable(
+        target,
+        resolved.schemas,
+        engine=marker.engine if marker else None,
+        uris=resolved.uris,
+    )
 
     if result.output is None:
         reasons = "; ".join(result.coverage.reasons) or "no schema was produced"
@@ -192,15 +197,20 @@ def assert_schema(
         )
 
     actual = result.output.schema
-    problems = _compare(wanted, actual, exact=exact)
+    problems = compare_schemas(wanted, actual, exact=exact)
     if problems:
         raise AssertionError(
             f"{result.target} does not match the expected schema:\n  " + "\n  ".join(problems)
         )
 
 
-def _compare(wanted: Schema, actual: Schema, *, exact: bool) -> list[str]:
+def compare_schemas(wanted: Schema, actual: Schema, *, exact: bool = True) -> list[str]:
     """Differences between a declared contract and a computed schema.
+
+    One line per problem, empty when the contract holds. Public because the
+    pytest plugin reports the same failures with its own framing around them,
+    and a second implementation of this comparison would mean a test could
+    pass under `rowless_check` and fail under `rowless.assert_schema`.
 
     An ANY or UNKNOWN column fails even against a matching declaration: the
     dtype algebra lets ANY match anything, which is right for inference and
@@ -231,8 +241,12 @@ def _compare(wanted: Schema, actual: Schema, *, exact: bool) -> list[str]:
     return problems
 
 
-def _as_schema(expected: Schema | Mapping[str, str]) -> Schema:
-    """Accept a `Schema` or the `{"day": "date"}` shorthand."""
+def as_schema(expected: Schema | Mapping[str, str]) -> Schema:
+    """Accept a `Schema` or the `{"day": "date"}` shorthand.
+
+    The shorthand is what tests are written in, so the plugin and
+    `assert_schema` parse it the same way.
+    """
     if isinstance(expected, Schema):
         return expected
     from rowless.sources.literal import schema_from_mapping
@@ -240,14 +254,46 @@ def _as_schema(expected: Schema | Mapping[str, str]) -> Schema:
     return schema_from_mapping(dict(expected))
 
 
-def _resolve_test_inputs(
+@dataclass(frozen=True, slots=True)
+class ResolvedInputs:
+    """A test's inputs, resolved: a schema per parameter, and where each came from.
+
+    The URIs travel next to the schemas because a pipeline may call
+    `rowless.source()` in its body rather than taking the frame as a
+    parameter, and that call looks itself up by the URI string the pipeline
+    wrote.
+    """
+
+    schemas: Mapping[str, Schema]
+    uris: Mapping[str, str] = field(default_factory=dict)
+
+
+def resolve_inputs(
     target: Callable[..., Any],
-    inputs: Mapping[str, Schema | str] | None,
-) -> dict[str, Schema]:
-    """Resolve a test's inputs: schemas as given, URIs through the registry."""
+    inputs: Mapping[str, Schema | Mapping[str, str] | str] | None = None,
+    *,
+    resolver: Callable[[str], Schema] | None = None,
+) -> ResolvedInputs:
+    """Resolve a test's inputs: schemas as given, URIs through a resolver.
+
+    A value is a `Schema`, the `{"day": "date"}` shorthand, or a source URI.
+    With no `inputs` at all the `@rowless.pipeline(inputs=...)` declaration is
+    used, so a pipeline says where its inputs come from once and every test of
+    it inherits that.
+
+    `resolver` is how a URI becomes a schema, and defaults to the source
+    registry with no cache and no config. The pytest plugin passes its own,
+    which applies the `[sources]` rewrites in `rowless.toml` and the on-disk
+    schema cache - a test suite resolving a URI differently from
+    `rowless check` would be two tools with one name.
+
+    Raises `AssertionError` rather than a `RowlessError`: both callers are a
+    test, and the message is the one a test author needs to read.
+    """
     from rowless.sources.base import resolve as resolve_source
 
-    declared: Mapping[str, Schema | str]
+    resolve = resolver if resolver is not None else resolve_source
+    declared: Mapping[str, Schema | Mapping[str, str] | str]
     if inputs is not None:
         declared = inputs
     else:
@@ -259,12 +305,15 @@ def _resolve_test_inputs(
             )
         declared = dict(marker.inputs)
 
-    resolved: dict[str, Schema] = {}
+    schemas: dict[str, Schema] = {}
+    uris: dict[str, str] = {}
     for parameter, value in declared.items():
         if isinstance(value, Schema):
-            resolved[parameter] = value
+            schemas[parameter] = value
         elif isinstance(value, Mapping):
-            resolved[parameter] = _as_schema(value)
+            schemas[parameter] = as_schema(value)
         else:
-            resolved[parameter] = resolve_source(str(value))
-    return resolved
+            uri = str(value)
+            uris[parameter] = uri
+            schemas[parameter] = resolve(uri)
+    return ResolvedInputs(schemas=schemas, uris=uris)
